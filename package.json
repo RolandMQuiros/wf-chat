@@ -1,0 +1,18 @@
+{
+  "name": "wf-chat",
+  "version": "0.0.1",
+  "description": "A telnet chat server with ElastiCache Redis integration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Roland Quiros <rolandmquiros@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^1.0.3",
+    "promisify": "0.0.3",
+    "redis": "^2.8.0",
+    "redis-promisify": "^0.1.0",
+    "winston": "^2.4.0"
+  }
+}
