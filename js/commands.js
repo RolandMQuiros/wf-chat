@@ -2,13 +2,16 @@ const {Room} = require("./room");
 
 
 const helpDescriptions = {
-    "/help": `Displays an explanation of a given command\n\tusage: /help command`,
-    "/rooms": `Displays the currently active rooms\n\tusage: /rooms`,
-    "/join": `Join a room\n\tusage: /join roomname`,
-    "/leave": `Leave the current room\n\tusage: /leave`,
-    "/create": `Creates a new room\n\tusage: /create roomname [description] [motd]`,
-    "/destroy": `Destroys the current room. Only the owner can do this.\n\tusage: /destroy`,
-    "/motd": `Displays the current room's message of the day\n\tusage: /motd`,
+    "/help":        `Displays an explanation of a given command\n\tusage: /help command`,
+    "/rooms":       `Displays the currently active rooms\n\tusage: /rooms`,
+    "/join":        `Join a room\n\tusage: /join roomname`,
+    "/leave":       `Leave the current room\n\tusage: /leave`,
+    "/create":      `Creates a new room\n\tusage: /create roomname`,
+    "/about":       `Displays the current room's description\n\tusage: /about`,
+    "/dedit":       `Changes the description of the current room. Only available to the owner.\n\tusage:/dedit description`,
+    "/motd":        `Displays the current room's message of the day\n\tusage: /motd`,
+    "/medit":       `Changes a room's message of the day. Only available to the owner\n\tusage: /medit message`,
+    "/destroy":     `Destroys the current room. Only the owner can do this.\n\tusage: /destroy`,
 }
 
 function help(user, args) {
@@ -49,9 +52,7 @@ async function join(user, args) {
             });
 
             user.send("end of list.");
-            if (room.options.motd) {
-                user.send(room.options.motd);
-            }
+            motd(user);
             await room.post({ type: "join", body: `New user joined the chat: ${user.info.name}` });
         } else {
             user.send(`No room named "${roomName}" exists!`);
@@ -61,8 +62,10 @@ async function join(user, args) {
 
 async function leave(user) {
     if (user.currentRoom) {
-        user.currentRoom.post({ type: "leave", body: `User has left the chat: ${user.info.name}` });
-        await user.currentRoom.removeUser(user);
+        const room = user.currentRoom;
+        room.post({ type: "leave", body: `User has left the chat: ${user.info.name}` });
+        await room.removeUser(user);
+        user.send(`You have left "${room.name}"`);
     }
 }
 
@@ -77,8 +80,6 @@ async function create(client, user, args) {
     } else {
         const roomName = args[0];
         let options = { creator: user.info.id };
-        if (args.length >= 2) { options.description = args[1]; }
-        if (args.length >= 3) { options.motd = args[2]; }
 
         if (Room.activeRooms.hasOwnProperty(roomName)) {
             user.send(`A room named "${roomName}" already exists`);
@@ -90,9 +91,68 @@ async function create(client, user, args) {
     }
 }
 
+function about(user) {
+    if (user.currentRoom) {
+        if (user.currentRoom.options.description) {
+            user.send(user.currentRoom.options.description);
+        } else {
+            user.send("No description has been set for this room");
+        }
+    } else {
+        user.send("You are not currently in a room");
+    }
+}
+
+async function dedit(user, args) {
+    if (args.length <= 0) {
+        help(user, ["/dedit"]);
+    } else {
+        const room = user.currentRoom;
+        if (room) {
+            if (room.options.creator == user.info.id) {
+                const description = args.join(" ");
+                const newOptions = { ...room.options, description };
+                console.log(newOptions);
+                room.setOptions(newOptions);
+                user.send(`Updated description for ${room.name} to: ${description}`);
+            } else {
+                user.send("Only the room owner can change the description");
+            }
+        } else {
+            user.send("You are currently not in a room");   
+        }
+    }
+}
+
+
 function motd(user) {
-    if (user.currentRoom && user.currentRoom.options.motd) {
-        user.send(user.currentRoom.options.motd);
+    if (user.currentRoom) {
+        if (user.currentRoom.options.motd) {
+            user.send(`Message of the day\n\t${user.currentRoom.options.motd}\n`);
+        }
+    } else {
+        user.send("You are not currently in a room");
+    }
+}
+
+async function medit(user, args) {
+    if (args.length <= 0) {
+        help(user, ["/medit"]);
+    } else {
+        const room = user.currentRoom;
+        if (room) {
+            if (room.options.creator == user.info.id) {
+                const motd = args.join(" ");
+                const newOptions = { ...room.options, motd };
+                console.log(newOptions);
+                room.setOptions(newOptions);
+                user.send(`Updated motd for ${room.name} to: ${motd}`);
+            } else {
+                user.send("Only the room owner can change the MOTD");
+            }
+        } else {
+            user.send("You are currently not in a room");   
+        }
     }
 }
 
@@ -155,8 +215,17 @@ exports.parse = async function parse(client, user, data) {
             case "/create":
                 await create(client, user, args);
                 break;
+            case "/about":
+                about(user);
+                break;
+            case "/dedit":
+                await dedit(user, args);
+                break;
             case "/motd":
                 motd(user);
+                break;
+            case "/medit":
+                await medit(user, args);
                 break;
             case "/destroy":
                 await destroy(user);
