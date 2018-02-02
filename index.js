@@ -11,8 +11,8 @@ const LOGIN_TIMEOUT = process.env.WFCHAT_LOGIN_TIMEOUT || 30000; // Timeout at l
 const ACTIVE_TIMEOUT = process.env.WFCHAT_ACTIVE_TIMEOUT || 9E3; // Timeout if inactive for 15 mins
 
 const client = redis.createClient(
-    process.env.REDIS_URL,
     {
+        host: process.env.REDIS_HOST,
         port: process.env.REDIS_PORT
     }
 );
