@@ -13,9 +13,9 @@ const helpDescriptions = {
 
 function help(user, args) {
     if (args.length < 1) {
-        for (let key in Object.keys(helpDescriptions)) {
-            user.send(`${key}: ${helpDescriptions[key]}`);
-        }
+        Object.keys(helpDescriptions).forEach(
+            k => user.send(`${k}: ${helpDescriptions[k]}`)
+        );
     } else {
         const description = helpDescriptions[args[0]];
         user.send(description || `No command "${args[0]}" found`);
