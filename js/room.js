@@ -66,15 +66,18 @@ class Room {
 
         // Subscribe to the room push channel
         roomPushSub.subscribe(KEYS.ROOM_PUSH_CHANNEL);
-        roomPushSub.on("message", msg => {
+        roomPushSub.on("message", (channel, raw) => {
+            const msg = JSON.parse(raw);
             switch (msg.type) {
                 case "create":
                     if (!activeRooms.hasOwnProperty(msg.roomName)) {
+                        console.log("Created room " + msg.roomName);
                         activeRooms[msg.roomName] = new Room(client, msg.roomName).create();
                     }
                     break;
                 case "destroy":
                     if (activeRooms.hasOwnProperty(msg.roomName)) {
+                        console.log("Destroyed room " + msg.roomName);
                         activeRooms[msg.roomName].destroy();
                         delete activeRooms[msg.roomName];
                     }
@@ -197,6 +200,10 @@ class Room {
         this._sub.unsubscribe();
         const users = Object.values(this._instanceUsers);
         users.forEach(u => this.removeUser(u));
+        roomPushPub.publish(KEYS.ROOM_PUSH_CHANNEL, JSON.stringify({
+            type: "destroy",
+            roomName: this.name
+        }));
         return this;
     }
     /**
