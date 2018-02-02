@@ -28,8 +28,8 @@ Room.watchPushChannel(client);
  * @param {User} user The user to poll for input
  */
 async function listen(user) {
-    let data;
-    while (data = await user.data()) {
+    while (1) {
+        let data = await user.data();
         commands.parse(client, user, data);
     }
 }
