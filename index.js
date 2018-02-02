@@ -13,7 +13,7 @@ const ACTIVE_TIMEOUT = process.env.WFCHAT_ACTIVE_TIMEOUT || 9E3; // Timeout if i
 const client = redis.createClient(
     {
         host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT
+        port: parseInt(process.env.REDIS_PORT)
     }
 );
 
