@@ -7,6 +7,7 @@ const helpDescriptions = {
     "/join": `Join a room\n\tusage: /join roomname`,
     "/leave": `Leave the current room\n\tusage: /leave`,
     "/create": `Creates a new room\n\tusage: /create roomname [description] [motd]`,
+    "/destroy": `Destroys the current room. Only the owner can do this.\n\tusage: /destroy`,
     "/motd": `Displays the current room's message of the day\n\tusage: /motd`,
 }
 
@@ -95,6 +96,26 @@ function motd(user) {
     }
 }
 
+async function destroy(user) {
+    const room = user.currentRoom;
+    if (room) {
+        const createdBy = user.currentRoom.options.creator;
+        if (createdBy && createdBy == user.info.id) {
+            user.send("This will kick all users from the room and remove it from the directory. Continue? [y/n]");
+            const yn = await user.data();
+            if (yn == "y") {
+                room.post({
+                    type: "post",
+                    body: "This room is now being destroyed. Vacate the premises."
+                });
+                room.destroy();
+            }
+        } else {
+            user.send("Only the room's creator can destroy a room");
+        }
+    }
+}
+
 function post(user, data) {
     if (user.currentRoom) {
         user.currentRoom.post({
@@ -136,6 +157,9 @@ exports.parse = async function parse(client, user, data) {
                 break;
             case "/motd":
                 motd(user);
+                break;
+            case "/destroy":
+                await destroy(user);
                 break;
             case "/quit":
                 quit(user);
