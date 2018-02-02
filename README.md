@@ -1,2 +1,2 @@
 # wf-chat
-A node Telnet chat server with Redis integration
+A Node.JS Telnet chat server backed by Elasticache-Redis.
