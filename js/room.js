@@ -47,9 +47,11 @@ class Room {
     static async createAllRooms(client) {
         const allRooms = await client.hgetallAsync(KEYS.ROOM_ID_MAP);
         activeRooms = {};
-        Object.keys(allRooms).forEach(rn => {
-            activeRooms[rn] = new Room(client, rn).create()
-        });
+        if (allRooms) {
+            Object.keys(allRooms).forEach(rn => {
+                activeRooms[rn] = new Room(client, rn).create()
+            });
+        }
         return activeRooms;
     }
     /**
